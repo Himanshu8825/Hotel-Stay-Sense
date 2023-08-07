@@ -1,0 +1,42 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+
+        <h1>Edit - Page</h1>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 m-auto">
+                    <form action="/hotels/<%= hotel._id %>?_method=patch" method="post">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="exampleInputEmail1" name="hotel[name]"
+                                value="<%= hotel.name %>">
+                        </div>
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price</label>
+                            <input type="text" class="form-control" id="exampleInputEmail1" name="hotel[price]"
+                                value="<%= hotel.price %>">
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <input type="text" class="form-control" id="exampleInputEmail1" name="hotel[address]"
+                                value="<%= hotel.address %>">
+                        </div>
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Image</label>
+                            <input type="text" class="form-control" id="exampleInputEmail1" name="hotel[image]"
+                                value="<%= hotel.image %>">
+                        </div>
+                        <div class="form-floating">
+                            <textarea class="form-control" placeholder="Leave a comment here" id="description"
+                                name="hotel[description]" <%=hotel.description %>></textarea>
+                            <label for="floatingTextarea">Description</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary ">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>
