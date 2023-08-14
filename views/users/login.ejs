@@ -1,0 +1,25 @@
+<%-include('../partials/header')%>
+    <%-include('../partials/navbar')%>
+
+        <h1 class="my-5 text-center ">Log-In Page</h1>
+        <div class="container">
+            <div class="row">
+                <div class="col-6 m-auto">
+                    <form action="/login" method="post">
+
+                        <div class="form-group">
+                            <label for="email"><strong>E-Mail</strong></label>
+                            <input type="email" class="form-control" id="email" name="username">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pass"><strong>Password</strong></label>
+                            <input type="password" class="form-control" id="pass" name="password">
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">Log-In</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <%-include('../partials/footer')%>

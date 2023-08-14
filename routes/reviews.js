@@ -4,16 +4,17 @@ const Review = require('../models/review')
 const Hotel = require('../models/hotel')
 
 //CUD
-
+const { isLoggedIn, checkReviewUser } = require('../middileware/index');
 //new
-router.get('/hotels/:id/reviews/new', async (req, res) => {
+router.get('/hotels/:id/reviews/new', isLoggedIn, async (req, res) => {
     res.render('reviews/new', { hotelId: req.params.id, page: 'New Review' });
 });
 
 //create
-router.post('/hotels/:id/reviews', async (req, res) => {
+router.post('/hotels/:id/reviews', isLoggedIn, async (req, res) => {
     try {
         const newReview = new Review(req.body.review);
+        newReview.user = req.user._id;
         await newReview.save();
         const hotel = await Hotel.findById(req.params.id);
         hotel.reviews.push(newReview);
@@ -21,15 +22,18 @@ router.post('/hotels/:id/reviews', async (req, res) => {
         hotel.sumOfRatings += parseInt(req.body.review.stars, 10);
         hotel.averageRatings = (hotel.sumOfRatings / hotel.totalRatings);
         await hotel.save();
+        req.flash('success', 'posted a review');
         res.redirect(`/hotels/${req.params.id}`);
     } catch (error) {
-        res.send(error);
+        console.log(error);
+        req.flash('error', 'cannot post a review at the moment');
+        res, redirect(`/hotels/${req, params.id}`);
     }
 })
 
 
 //edit
-router.get('/hotels/:id/reviews/:reviewId/edit', async (req, res) => {
+router.get('/hotels/:id/reviews/:reviewId/edit', isLoggedIn, checkReviewUser, async (req, res) => {
     try {
         const review = await Review.findById(req.params.reviewId);
         res.render('reviews/edit', { hotelId: req.params.id, review, page: 'Edit Review' });
@@ -40,7 +44,7 @@ router.get('/hotels/:id/reviews/:reviewId/edit', async (req, res) => {
 });
 
 //update
-router.patch('/hotels/:id/reviews/:reviewId', async (req, res) => {
+router.patch('/hotels/:id/reviews/:reviewId', isLoggedIn, checkReviewUser, async (req, res) => {
     try {
         const review = await Review.findById(req.params.reviewId);
         const hotel = await Hotel.findById(req.params.id);
@@ -56,7 +60,7 @@ router.patch('/hotels/:id/reviews/:reviewId', async (req, res) => {
 })
 
 //delete
-router.delete('/hotels/:id/reviews/:reviewId', async (req, res) => {
+router.delete('/hotels/:id/reviews/:reviewId', isLoggedIn, checkReviewUser, async (req, res) => {
     try {
         const review = await Review.findById(req.params.reviewId);
         const hotel = await Hotel.findById(req.params.id);

@@ -1,0 +1,42 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+
+        <h1 class="my-5 text-center ">Register Page</h1>
+        <div class="container">
+            <div class="row">
+                <div class="col-6 m-auto">
+                    <form action="/register" method="post">
+                        <div class="form-group">
+                            <label for="name" class="form label"><strong>Name</strong></label>
+                            <input type="text" class="form-control" id="name" name="user[name]">
+
+                        </div>
+                        <div class="form-group">
+                            <label for="email"><strong>E-Mail</strong></label>
+                            <input type="email" class="form-control" id="email" name="user[username]">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone"><strong>Mobile</strong></label>
+                            <input type="number" class="form-control" id="phone" name="user[phone]">
+                        </div>
+                        <div class="form-group">
+                            <label for="age"><strong>Age</strong></label>
+                            <input type="number" class="form-control" id="age" name="user[age]">
+                        </div>
+                        <div class="form-group">
+                            <label for="pass"><strong>Password</strong></label>
+                            <input type="password" class="form-control" id="pass" name="password">
+                        </div>
+                        <div class="mb-3">
+                            <label for="exampleFormControlTextarea1" class="form-label"><strong>Address</strong></label>
+                            <textarea name="user[address]" class="form-control" id="exampleFormControlTextarea1"
+                                rows="1"></textarea>
+                        </div>
+                       
+                        <button type="submit" class="btn btn-primary mt-1">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>

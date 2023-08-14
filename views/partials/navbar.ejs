@@ -1,4 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    
     <div class="container-fluid">
         <a class="navbar-brand" href="/">Hotels</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
@@ -19,19 +20,32 @@
                 <li class="nav-item">
                     <a class="nav-link " aria-current="page" href="/contact">Contact Us</a>
                 </li>
-                
-                
+
+
             </ul>
 
             <ul class="navbar-nav  mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link " aria-current="page" href="/login">Log-In via google </a>
+                    <a class="nav-link " aria-current="page" href="/auth/google">Log-In via google </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link " aria-current="page" href="/logout">Log-Out</a>
                 </li>
             </ul>
-            
+
         </div>
     </div>
 </nav>
+
+    <% if (error && error.length ) { %> 
+        <div class="alert alert-danger" role="alert">
+            <%= error %>
+        </div>
+        <% } %>
+          
+
+    <% if (success && success.length) { %>
+    <div class="alert alert-success" role="alert">
+        <%= success %>
+    </div>
+    <% } %>
