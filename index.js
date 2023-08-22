@@ -1,70 +1,86 @@
-const express = require('express');
-const { default: mongoose } = require('mongoose');
+// ! MODULE REQUIREMENT
+const express = require('express'),
+	mongoose = require('mongoose'),
+	flash = require('connect-flash'),
+	passport = require('passport'),
+	localStrategy = require('passport-local'),
+	session = require('express-session'),
+	methodOverride = require('method-override'),
+	moment = require('moment'),
+	path = require('path');
 const app = express();
-const moongoose = require('mongoose');
-const methodOverride = require('method-override')
 require('dotenv').config();
-const session = require('express-session');
-const passport = require('passport');
-const localStratergy = require('passport-local');
-const moment = require('moment');
-const flash = require('connect-flash');
 
+// ! MONGOOSE CONNECTION
+const DB_USERNAME = process.env.DB_USERNAME,
+	DB_USERPASS = process.env.DB_USERPASS;
+	
+mongoose.connect(`mongodb+srv://${DB_USERNAME}:${DB_USERPASS}@cluster0.fa023jh.mongodb.net/?retryWrites=true&w=majority`, {
+		useNewUrlParser: true,
+		useCreateIndex: true,
+		useUnifiedTopology: true,
+		useFindAndModify: false
+	})
+	.then(() => {
+		console.log('db working');
+	})
+	.catch((error) => {
+		console.log(error);
+	});
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => {
-        console.log('db connected')
-    })
-    .catch((error) => {
-        console.log(error)
-    })
+// ! SESSION SETUP
+const SESSION_PASS = process.env.SESSION_PASS;
+app.use(
+	session({
+		secret: SESSION_PASS,
+		resave: true,
+		saveUninitialized: true,
+		cookie: {
+			httpOnly: true,
+			// secure: true,
+			expires: Date.now() + 1000 * 60 * 60 * 24,
+			maxAge: 1000 * 60 * 60 * 24
+		}
+	})
+);
 
+// ! PASSPORT SETUP
+const User = require('./models/user');
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new localStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
-
-app.use(session({
-    secret: 'keyboard cat',
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 * 2
-        // secure: true 
-    }
-}))
-
-// const User = require('./models/user');
-// app.use(passport.initialize());
-// app.use(passport.session());
-// passport.use(new localStratergy(User.authenticate()));
-// passport.serializeUser(User.serializeUser());
-// passport.deserializeUser(User.deserializeUser());
-
-
-const { passportInit } = require('./config/passport');
-passportInit(app);
-
+// ! SERVER SETUP AND MIDDLEWARES
 app.use(flash());
 app.set('view engine', 'ejs');
-app.use(methodOverride('_method'));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(methodOverride('_method'));
 app.use((req, res, next) => {
-    res.locals.moment = moment;
-    res.locals.error = req.flash('error');
-    res.locals.success = req.flash('success');
-    next();
-})
+	if (![ '/login', '/register' ].includes(req.originalUrl)) {
+		req.session.returnTo = req.originalUrl;
+	}
+	res.locals.currentUser = req.user;
+	res.locals.success = req.flash('success');
+	res.locals.error = req.flash('error');
+	res.locals.moment = moment;
+	next();
+});
 
-
-const hotelRoutes = require('./routes/hotels');
-app.use(hotelRoutes);
-const reviewRoutes = require('./routes/reviews');
-app.use(reviewRoutes);
-const authRoutes = require('./routes/auth');
+// ! APIs
+const authRoutes = require('./routes/auth'),
+	hotelRoutes = require('./routes/hotels'),
+	userRoutes = require('./routes/users');
+reviewRoutes = require('./routes/reviews');
 app.use(authRoutes);
-const oAuthRoutes = require('./routes/oAuth');
-app.use(oAuthRoutes);
+app.use(hotelRoutes);
+app.use(userRoutes);
+app.use(reviewRoutes);
 
-const port = process.env.PORT;
-app.listen(port, () => {
-    console.log('server started');
-})
+// ! PORT CONNECTION
+const PORT = process.env.PORT;
+app.listen(PORT, () => {
+	console.log('server running on port' + PORT);
+});

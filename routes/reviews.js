@@ -1,79 +1,43 @@
-const express = require('express');
+const express = require('express'),
+	{ isLoggedIn, isReviewAuthor } = require('../middlewares/index');
 const router = express.Router();
-const Review = require('../models/review')
-const Hotel = require('../models/hotel')
+const Hotel = require('../models/hotel'),
+	Review = require('../models/review');
 
-//CUD
-const { isLoggedIn, checkReviewUser } = require('../middileware/index');
-//new
-router.get('/hotels/:id/reviews/new', isLoggedIn, async (req, res) => {
-    res.render('reviews/new', { hotelId: req.params.id, page: 'New Review' });
-});
+//index - get all reviews for a particular hotel - show page
+// new - show
 
-//create
+// create - newOverallRating = (old + curr)/hotel.reviews.length;
 router.post('/hotels/:id/reviews', isLoggedIn, async (req, res) => {
-    try {
-        const newReview = new Review(req.body.review);
-        newReview.user = req.user._id;
-        await newReview.save();
-        const hotel = await Hotel.findById(req.params.id);
-        hotel.reviews.push(newReview);
-        hotel.totalRatings++;
-        hotel.sumOfRatings += parseInt(req.body.review.stars, 10);
-        hotel.averageRatings = (hotel.sumOfRatings / hotel.totalRatings);
-        await hotel.save();
-        req.flash('success', 'posted a review');
-        res.redirect(`/hotels/${req.params.id}`);
-    } catch (error) {
-        console.log(error);
-        req.flash('error', 'cannot post a review at the moment');
-        res, redirect(`/hotels/${req, params.id}`);
-    }
-})
-
-
-//edit
-router.get('/hotels/:id/reviews/:reviewId/edit', isLoggedIn, checkReviewUser, async (req, res) => {
-    try {
-        const review = await Review.findById(req.params.reviewId);
-        res.render('reviews/edit', { hotelId: req.params.id, review, page: 'Edit Review' });
-    } catch (error) {
-        res.send(error);
-
-    }
+	try {
+		// make a new review and store it into db
+		let newReview = new Review(req.body.review);
+		newReview.author = req.user;
+		await newReview.save();
+		// take that review and push that into the hotel
+		let hotel = await Hotel.findById(req.params.id);
+		hotel.overAllRating = ((hotel.overAllRating*hotel.reviews.length) + newReview.rating)/(hotel.reviews.length+1);
+		hotel.reviews.push(newReview);
+		await hotel.save();
+		// redirect somewhere
+		req.flash('sucess', 'comment added');
+		res.redirect(`/hotels/${req.params.id}`); // show page
+	} catch (error) {
+		req.flash('error', 'error while creating review, please try again later');
+		console.log(error);
+		res.redirect(`/hotels/${req.params.id}`);
+	}
 });
-
-//update
-router.patch('/hotels/:id/reviews/:reviewId', isLoggedIn, checkReviewUser, async (req, res) => {
-    try {
-        const review = await Review.findById(req.params.reviewId);
-        const hotel = await Hotel.findById(req.params.id);
-        await Review.findByIdAndUpdate(req.params.reviewId, req.body.review);
-        hotel.sumOfRatings -= parseInt(review.stars, 10);
-        hotel.sumOfRatings += parseInt(req.body.review.stars);
-        hotel.averageRatings = (hotel.sumOfRatings / hotel.totalRatings);
-        await hotel.save();
-        res.redirect(`/hotels/${req.params.id}`);
-    } catch (error) {
-        res.send(error);
-    }
-})
-
-//delete
-router.delete('/hotels/:id/reviews/:reviewId', isLoggedIn, checkReviewUser, async (req, res) => {
-    try {
-        const review = await Review.findById(req.params.reviewId);
-        const hotel = await Hotel.findById(req.params.id);
-        await Review.findByIdAndDelete(req.params.reviewId);
-        hotel.sumOfRatings -= parseInt(review.stars, 10);
-        hotel.totalRatings--;
-        hotel.averageRatings = (hotel.sumOfRatings / hotel.totalRatings);
-        await hotel.save();
-        res.redirect(`/hotels/${req.params.id}`);
-    } catch (error) {
-        res.send(error);
-    }
-})
-
-
-module.exports = router
+// delete
+router.delete('/hotels/:id/reviews/:reviewId', isLoggedIn, isReviewAuthor, async (req, res) => {
+	try {
+		await Review.findByIdAndDelete(req.params.reviewId);
+		req.flash('success', 'comment deleted');
+		res.redirect(`/hotels/${req.params.id}`);
+	} catch (error) {
+		req.flash('error', 'error while deleting review, please try again later');
+		console.log(error);
+		res.redirect(`/hotels/${req.params.id}`);
+	}
+});
+module.exports = router;
